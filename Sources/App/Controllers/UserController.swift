@@ -18,6 +18,7 @@ struct UserController: RouteCollection {
         usersGroup.get(":id", use: getUserByIdHandler)
     }
     
+    //MARK: CRUD - post
     func createUserHandler(_ req: Request ) async throws -> User.Public {
         
         let user = try req.content.decode(User.self)
@@ -26,6 +27,7 @@ struct UserController: RouteCollection {
         return user.convertToPublic()
     }
     
+    //MARK: CRUD - get all
     func getAllUsersHandler(_ req: Request) async throws -> [User.Public] {
         let users = try await User.query(on: req.db).all()
         let publicUsers = users.map { user in
@@ -34,6 +36,7 @@ struct UserController: RouteCollection {
         return publicUsers
     }
     
+    //MARK: CRUD - get
     func getUserByIdHandler(_ req: Request) async throws -> User.Public {
         guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
             throw Abort(.notFound)
@@ -41,4 +44,7 @@ struct UserController: RouteCollection {
         return user.convertToPublic()
     }
     
+//    func deleteHandler (_ req: Request) async throws -> Response {
+//        
+//    }
 }
