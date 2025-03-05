@@ -19,6 +19,7 @@ struct CreateUser: AsyncMigration {
             .field( "password", .string, .required)
             .field("role", .string, .required)
             .field("imagePic", .string)
+            .unique(on: "login")
         try await  schema.create()
         
     }
