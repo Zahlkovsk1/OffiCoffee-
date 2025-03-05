@@ -1,0 +1,26 @@
+//
+//  File.swift
+//  restaurant
+//
+//  Created by Shohjakhon Mamadaliev on 05/03/25.
+//
+import Fluent
+import Vapor
+
+final class User: Model, Content, @unchecked Sendable  {
+    
+    static let schema: String = "users"
+    @ID var id: UUID?
+    
+    @Field(key: "name") var name: String
+    @Field(key: "login") var login: String
+    @Field(key: "password") var password: String
+    @Field(key: "role") var role: String
+    @Field(key: "profilePic") var profilePic: String
+
+}
+
+enum UserRole: String, CaseIterable {
+    case waiter = "waiter"
+    case manager = "manager"
+}
