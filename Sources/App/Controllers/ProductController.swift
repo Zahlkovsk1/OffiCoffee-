@@ -25,10 +25,22 @@ struct ProductController: RouteCollection {
     
     //MARK: CRUD - post
     func createProductHandler(_ req: Request) async throws -> Product {
-        guard let product = try? req.content.decode(Product.self) else {
-            throw Abort(.custom(code: 499, reasonPhrase: "Not decoded into Product model"))
-        }
         
+        guard let productData = try? req.content.decode(ProductDTO.self) else {
+            throw Abort(.custom(code: 499, reasonPhrase: "Not decoded into ProductDTO model"))
+        }
+        let productID = UUID()
+        let product = Product(id: productID,
+                              title:productData.title,
+                              description: productData.description,
+                              price: productData.price,
+                              category: productData.category,
+                              image: "")
+        
+        let imagePath = req.application.directory.workingDirectory + "Storage/Products" + "/\(product.id!).jpg"
+        
+        try await req.fileio.writeFile(.init(data: productData.image), at: imagePath)
+        product.image = imagePath
         try await product.save(on: req.db)
         return product
     }
@@ -74,4 +86,14 @@ struct ProductController: RouteCollection {
         try await   product.delete(on: req.db)
         return Response.init(status: .ok, version: .init(major: 1, minor: 1), headersNoUpdate: [:], body: .init(stringLiteral: String("Deleted")))
     }
+}
+
+
+struct ProductDTO: Content {
+
+     var title: String
+     var description: String
+     var price: Int
+     var category: String
+     var image: Data
 }
