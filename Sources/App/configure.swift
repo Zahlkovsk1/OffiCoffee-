@@ -19,6 +19,7 @@ public func configure(_ app: Application) async throws {
 
 
     app.migrations.add(CreateProduct())
+    app.migrations.add(CreateUser())
     try app.autoMigrate().wait()
     try routes(app)
 }

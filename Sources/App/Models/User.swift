@@ -16,7 +16,7 @@ final class User: Model, Content, @unchecked Sendable  {
     @Field(key: "login") var login: String
     @Field(key: "password") var password: String
     @Field(key: "role") var role: String
-    @Field(key: "profilePic") var profilePic: String
+    @Field(key: "profilePic") var profilePic: String?
 
 }
 
