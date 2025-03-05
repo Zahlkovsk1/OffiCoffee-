@@ -12,9 +12,13 @@ import Vapor
 struct ProductController: RouteCollection {
     func boot(routes: any Vapor.RoutesBuilder) throws {
         let productGroup = routes.grouped("products")
-        productGroup.post(use: createProductHandler)
         productGroup.get(use: getAllProductHandler)
         productGroup.get( ":productID",use: getProductHandler)
+        
+        let basicMW = User.authenticator()
+        let guardMW = User.guardMiddleware()
+        let protected = productGroup.grouped(basicMW, guardMW)
+        protected.post(use: createProductHandler)
     }
     
     func createProductHandler(_ req: Request) async throws -> Product {
