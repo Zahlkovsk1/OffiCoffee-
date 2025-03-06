@@ -9,7 +9,7 @@ import Foundation
 import Fluent
 import Vapor
 
-struct ProductController: RouteCollection {
+struct ProductController: RouteCollection, Sendable  {
     func boot(routes: any Vapor.RoutesBuilder) throws {
         let productGroup = routes.grouped("products")
         productGroup.get(use: getAllProductHandler)
@@ -24,6 +24,7 @@ struct ProductController: RouteCollection {
     }
     
     //MARK: CRUD - post
+    @Sendable
     func createProductHandler(_ req: Request) async throws -> Product {
         
         guard let productData = try? req.content.decode(ProductDTO.self) else {
@@ -46,12 +47,14 @@ struct ProductController: RouteCollection {
     }
     
     //MARK: CRUD - Retrieve all
+    @Sendable
     func getAllProductHandler(_ req: Request) async throws -> [Product] {
         let proucts = try await Product.query(on: req.db).all()
         return proucts
     }
     
     //MARK: CRUD - Retrieve
+    @Sendable
     func getProductHandler(_ req: Request) async throws -> Product {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)
@@ -60,6 +63,7 @@ struct ProductController: RouteCollection {
     }
     
     //MARK: CRUD - Update
+    @Sendable
     func updateProductHandler(_ req: Request) async throws -> Product {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)
@@ -79,6 +83,7 @@ struct ProductController: RouteCollection {
     
     
     //MARK: CRUD - delete
+    @Sendable
     func deleteProductHandler (_ req: Request) async throws -> Response {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)

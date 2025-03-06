@@ -8,7 +8,7 @@
 import Vapor
 import Fluent
 
-struct UserController: RouteCollection {
+struct UserController: RouteCollection, Sendable {
     
     
     func boot(routes: any Vapor.RoutesBuilder) throws {
@@ -20,6 +20,7 @@ struct UserController: RouteCollection {
     }
     
     //MARK: CRUD - post
+    @Sendable
     func createUserHandler(_ req: Request ) async throws -> User.Public {
         
         let user = try req.content.decode(User.self)
@@ -29,6 +30,7 @@ struct UserController: RouteCollection {
     }
     
     //MARK: CRUD - get all
+    @Sendable
     func getAllUsersHandler(_ req: Request) async throws -> [User.Public] {
         let users = try await User.query(on: req.db).all()
         let publicUsers = users.map { user in
@@ -38,6 +40,7 @@ struct UserController: RouteCollection {
     }
     
     //MARK: CRUD - get
+    @Sendable
     func getUserByIdHandler(_ req: Request) async throws -> User.Public {
         guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
             throw Abort(.notFound)
@@ -45,6 +48,7 @@ struct UserController: RouteCollection {
         return user.convertToPublic()
     }
     
+    @Sendable
     func authUserHandler(_ req: Request) async throws -> User.Public {
         let userDTO = try req.content.decode(AuthUserDTO.self)
         guard let user = try await User
