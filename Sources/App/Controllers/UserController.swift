@@ -16,6 +16,7 @@ struct UserController: RouteCollection {
         usersGroup.post(use: createUserHandler)
         usersGroup.get(use: getAllUsersHandler)
         usersGroup.get(":id", use: getUserByIdHandler)
+        usersGroup.post("auth", use:authUserHandler)
     }
     
     //MARK: CRUD - post
@@ -44,7 +45,22 @@ struct UserController: RouteCollection {
         return user.convertToPublic()
     }
     
-//    func deleteHandler (_ req: Request) async throws -> Response {
-//        
-//    }
+    func authUserHandler(_ req: Request) async throws -> User.Public {
+        let userDTO = try req.content.decode(AuthUserDTO.self)
+        guard let user = try await User
+            .query(on: req.db)
+            .filter("login", .equal, userDTO.login)
+            .first() else {throw Abort(.notFound)}
+        let isPassEqual = try Bcrypt.verify(userDTO.password, created: user.password)
+        guard isPassEqual else {throw Abort(.unauthorized)}
+        return user.convertToPublic()
+        
+    }
+ 
+}
+
+
+struct AuthUserDTO: Content {
+    let login : String
+    var password : String
 }
