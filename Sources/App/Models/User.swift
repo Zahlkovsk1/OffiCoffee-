@@ -18,7 +18,7 @@ final class User: Model, Content, @unchecked Sendable  {
     @Field(key: "role") var role: String
     @Field(key: "imagePic") var imagePic: String?
     
-    final class Public: Content {
+    final class Public: Content, @unchecked Sendable {
         var name: String
         var id: UUID?
         var login: String
@@ -48,7 +48,7 @@ extension User {
 
 extension User: ModelAuthenticatable {
     static let usernameKey = \User.$login
-    static var passwordHashKey = \User.$password
+    static let passwordHashKey = \User.$password
     
     func verify(password: String) throws -> Bool {
         try Bcrypt.verify(password, created: self.password)

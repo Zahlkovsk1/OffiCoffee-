@@ -9,7 +9,7 @@ import Foundation
 import Fluent
 import Vapor
 
-struct ProductController: RouteCollection {
+struct ProductController: RouteCollection, Sendable  {
     func boot(routes: any Vapor.RoutesBuilder) throws {
         let productGroup = routes.grouped("products")
         productGroup.get(use: getAllProductHandler)
@@ -24,22 +24,37 @@ struct ProductController: RouteCollection {
     }
     
     //MARK: CRUD - post
+    @Sendable
     func createProductHandler(_ req: Request) async throws -> Product {
-        guard let product = try? req.content.decode(Product.self) else {
-            throw Abort(.custom(code: 499, reasonPhrase: "Not decoded into Product model"))
-        }
         
+        guard let productData = try? req.content.decode(ProductDTO.self) else {
+            throw Abort(.custom(code: 499, reasonPhrase: "Not decoded into ProductDTO model"))
+        }
+        let productID = UUID()
+        let product = Product(id: productID,
+                              title:productData.title,
+                              description: productData.description,
+                              price: productData.price,
+                              category: productData.category,
+                              image: "")
+        
+        let imagePath = req.application.directory.workingDirectory + "Storage/Products" + "/\(product.id!).jpg"
+        
+        try await req.fileio.writeFile(.init(data: productData.image), at: imagePath)
+        product.image = imagePath
         try await product.save(on: req.db)
         return product
     }
     
     //MARK: CRUD - Retrieve all
+    @Sendable
     func getAllProductHandler(_ req: Request) async throws -> [Product] {
         let proucts = try await Product.query(on: req.db).all()
         return proucts
     }
     
     //MARK: CRUD - Retrieve
+    @Sendable
     func getProductHandler(_ req: Request) async throws -> Product {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)
@@ -48,6 +63,7 @@ struct ProductController: RouteCollection {
     }
     
     //MARK: CRUD - Update
+    @Sendable
     func updateProductHandler(_ req: Request) async throws -> Product {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)
@@ -67,6 +83,7 @@ struct ProductController: RouteCollection {
     
     
     //MARK: CRUD - delete
+    @Sendable
     func deleteProductHandler (_ req: Request) async throws -> Response {
         guard let product = try await Product.find(req.parameters.get("productID"), on: req.db) else {
             throw Abort(.notFound)
@@ -74,4 +91,14 @@ struct ProductController: RouteCollection {
         try await   product.delete(on: req.db)
         return Response.init(status: .ok, version: .init(major: 1, minor: 1), headersNoUpdate: [:], body: .init(stringLiteral: String("Deleted")))
     }
+}
+
+
+struct ProductDTO: Content {
+
+     var title: String
+     var description: String
+     var price: Int
+     var category: String
+     var image: Data
 }
